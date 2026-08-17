@@ -1,5 +1,7 @@
 # no-watermark
 
+*[Read in Portuguese / Leia em Português](README.pt-BR.md)*
+
 Detect and remove invisible-Unicode text watermarks — zero-width characters, variation selectors, Unicode tag-block steganography, bidi controls, and anomalous space substitution. 100% deterministic removal within this scope; does not touch legitimate emoji sequences by default.
 
 **Out of scope:** statistical token-distribution watermarks (e.g. Kirchenbauer-style green/red list watermarking). Those require paraphrasing and cannot be removed with a removal guarantee — not addressed by this tool.
