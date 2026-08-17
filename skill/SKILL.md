@@ -46,4 +46,33 @@ echo "$TEXT" | nowatermark clean -
 4. Get the text into a file or stdin, then run `nowatermark detect` and show the user what was found (codepoints + categories).
 5. Run `nowatermark clean` to strip it.
 6. Run `nowatermark detect` again on the cleaned output to confirm exit code 0 (zero matches). If it's not zero, something in step 5 failed — do not deliver the text as "clean" until this check passes.
-7. Report to the user: what stylistic patterns stop-slop removed, what Unicode categories were stripped, and confirmation both checks are now clean. Do not silently overwrite the user's original file — write to a new path unless they ask to replace in place.
+7. If `scripts/verify_humanization.py` and its detector libraries are available, run it on the final text as an extra check (see "Verification against real detectors" below). Not required to complete the task, but run it when available — it catches things the checklist misses.
+8. Report to the user: what stylistic patterns stop-slop removed, what Unicode categories were stripped, and confirmation both checks are now clean. Do not silently overwrite the user's original file — write to a new path unless they ask to replace in place.
+
+## Humanization checklist (validated against real detectors)
+
+Tested against three independent tools with different detection approaches (heuristic style scoring, phrase/pattern matching, ML classifier) — a corporate-style AI-generated paragraph went from `ai-slop-detect` score 54/LIKELY_AI to 0/HUMAN_LIKE, and `aifingerprint` from 39 to ~23, by applying these on top of stop-slop's base rules:
+
+- **No em dash.** Already a hard rule above, also the single most common flag across every tool tested.
+- **No hedging openers**: "it's important to note", "it's worth noting". Say the thing directly.
+- **No formulaic transition/closer words as sentence-openers**: "Furthermore,", "Nevertheless,", "In conclusion,". Cut them, the sentence usually stands fine without.
+- **Avoid stock AI vocabulary**: streamline, unlock, enhance, landscape (as in "digital landscape"), fast-paced, robust, seamless, boundless, delve, moreover. Use a plain, specific word instead.
+- **Vary sentence length inside a paragraph (burstiness).** Mixing one long sentence with two short ones beats three same-length sentences in a row. Chopping everything into uniform short sentences is itself a tell (metronomic rhythm) — don't overcorrect into that.
+- **Vary sentence count between paragraphs.** All-3-sentence paragraphs read as templated. Let one run 2, another run 4.
+- **Occasionally start a sentence with a conjunction** (But/And/So). AI text avoids this; human text does it naturally.
+- **Vary punctuation beyond periods/commas** — a question mark, a semicolon, a parenthetical aside.
+- **Replace vague declaratives with a specific claim.** Not "the implications are significant" — say which implication.
+- **Keep at least one concrete, idiosyncratic detail per paragraph** where the topic allows it. Generic corporate-topic text scores high on some detectors' "compression similarity to known AI corpus" check regardless of style; specifics are the main lever for that one and it doesn't fully zero out on short generic text — don't chase a perfect score past this point, it's a property of the topic, not a sign the text still reads as AI.
+
+## Verification against real detectors (optional, for testing)
+
+`scripts/verify_humanization.py` in this repo runs a file through three independently-approached open-source detectors, none requiring a paid API key:
+
+```bash
+pip install aifingerprint
+pip install git+https://github.com/antydizajn/ai-slop-detect
+pip install torch transformers   # optional, heavy (~500MB model download) — real ML classifier
+python scripts/verify_humanization.py path/to/text.txt
+```
+
+Each library is optional and skipped if not installed. This is a dev/test tool, not a runtime dependency of `nowatermark` — use it to validate the checklist above is actually working on real output, not to gate every single skill invocation.
