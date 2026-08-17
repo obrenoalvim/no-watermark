@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nowatermark"
+version = "0.1.0"
+description = "Detect and remove invisible-Unicode text watermarks"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+
+[project.scripts]
+nowatermark = "nowatermark.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
