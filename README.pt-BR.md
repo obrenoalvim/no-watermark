@@ -46,7 +46,7 @@ ZWJ/ZWNJ e caracteres do bloco de tag também são usados legitimamente em emoji
 
 ## Skill de agente
 
-Veja `skill/SKILL.md` — instale no seu diretório de skills do AI coding agent pra deixar o the AI agent detectar/limpar marcas d'água em texto que você cola ou referencia durante uma conversa.
+`skill/SKILL.md` empacota isso como uma skill instalável para agentes de IA que suportam o formato SKILL.md — coloque no diretório de skills do seu agente pra ele detectar/limpar marcas d'água em texto automaticamente durante uma sessão.
 
 ## Desenvolvimento
 

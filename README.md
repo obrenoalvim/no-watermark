@@ -44,9 +44,9 @@ Space coverage is derived from the full Unicode "Zs" category, not a hand-picked
 
 ZWJ/ZWNJ and tag-block characters are also used legitimately in emoji (family/couple sequences, flag sequences) and in some scripts (ZWNJ in Indic text). By default, `nowatermark` will not strip these when adjacent to emoji codepoints or inside a valid flag-emoji tag sequence. Pass `--no-emoji-guard` to strip unconditionally.
 
-## agent skill
+## Agent skill
 
-See `skill/SKILL.md` — install into your agent skills directory to let the AI agent detect/clean watermarks in text you paste or reference during a conversation.
+`skill/SKILL.md` packages this as an installable skill for AI coding agents that support the SKILL.md format — drop it into your agent's skills directory to have it detect/clean watermarks in text automatically during a session.
 
 ## Development
 
