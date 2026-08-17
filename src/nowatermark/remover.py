@@ -41,6 +41,8 @@ def clean(text: str, emoji_guard: bool = True) -> tuple[str, list[dict]]:
 
         if category == "space-variant":
             result.append(" ")
+        elif category == "line-separator-variant":
+            result.append("\n")
         report.append({"codepoint": f"U+{cp:04X}", "category": category})
 
     return "".join(result), report

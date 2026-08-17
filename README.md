@@ -32,8 +32,11 @@ echo "some text" | nowatermark clean -
 | Format chars (Unicode Cf) | zero-width space/joiner/non-joiner, word joiner, BOM, bidi controls | removed |
 | Variation selectors | U+FE00–FE0F, U+E0100–E01EF | removed |
 | Tag block | U+E0000–E007F | removed (unless part of a flag-emoji sequence) |
-| Anomalous spaces | NBSP, thin space, em/en spaces, ideographic space, etc. | normalized to a regular space |
-| Other | soft hyphen, Mongolian vowel separator | removed |
+| Anomalous spaces | all 16 non-ASCII Unicode "Zs" space characters (NBSP, Ogham space mark, thin/hair/em/en spaces, ideographic space, etc.) | normalized to a regular space |
+| Line separator variants | NEL (U+0085), LINE SEPARATOR (U+2028), PARAGRAPH SEPARATOR (U+2029) | normalized to `\n` |
+| Other | soft hyphen, Mongolian vowel separator, combining grapheme joiner | removed |
+
+Space coverage is derived from the full Unicode "Zs" category, not a hand-picked list — this matters because current LLM-watermarking research (e.g. [Innamark, IEEE Access 2025](https://arxiv.org/html/2502.12710)) watermarks text by substituting regular spaces with *any* visually-identical Zs character, so partial coverage is easy to bypass.
 
 ## Emoji safety
 

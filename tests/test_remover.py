@@ -29,6 +29,32 @@ def test_clean_removes_variation_selector():
     assert cleaned == "textmore"
 
 
+def test_clean_normalizes_ogham_space_mark():
+    text = "hello" + chr(0x1680) + "world"
+    cleaned, report = clean(text)
+    assert cleaned == "hello world"
+    assert report[0]["category"] == "space-variant"
+
+
+def test_clean_normalizes_line_separator_variants_to_newline():
+    text = (
+        "line one" + chr(0x2028)
+        + "line two" + chr(0x2029)
+        + "line three" + chr(0x0085)
+        + "line four"
+    )
+    cleaned, report = clean(text)
+    assert cleaned == "line one\nline two\nline three\nline four"
+    assert all(r["category"] == "line-separator-variant" for r in report)
+
+
+def test_clean_removes_combining_grapheme_joiner():
+    text = "a" + chr(0x034F) + "b"
+    cleaned, report = clean(text)
+    assert cleaned == "ab"
+    assert report[0]["category"] == "other-invisible"
+
+
 def test_clean_preserves_zwj_adjacent_to_emoji():
     family = "\U0001F468‍\U0001F469‍\U0001F467‍\U0001F466"
     cleaned, report = clean(family)

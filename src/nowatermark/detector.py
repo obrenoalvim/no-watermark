@@ -2,11 +2,29 @@ import unicodedata
 
 VARIATION_SELECTORS = [(0xFE00, 0xFE0F), (0xE0100, 0xE01EF)]
 TAG_BLOCK = [(0xE0000, 0xE007F)]
+
+# Derived from the full Unicode "Zs" (space separator) category rather than
+# hand-listed: research on LLM watermarking (Innamark, IEEE Access 2025)
+# shows watermarks substitute regular spaces with *any* visually-identical
+# Zs character, so the blocklist must cover the whole category, not a
+# hand-picked subset. U+0020 (the normal space) is excluded on purpose --
+# it's the normalization target, not something to flag.
 SPACE_VARIANTS = {
-    0x00A0, 0x2000, 0x2001, 0x2002, 0x2003, 0x2004, 0x2005,
-    0x2006, 0x2007, 0x2008, 0x2009, 0x200A, 0x202F, 0x205F, 0x3000,
+    cp for cp in range(0x110000)
+    if cp != 0x20 and unicodedata.category(chr(cp)) == "Zs"
 }
-OTHER_INVISIBLE = {0x00AD, 0x180E}
+
+# NEL, LINE SEPARATOR, PARAGRAPH SEPARATOR: alternate line-break encodings
+# with zero visual difference from "\n" in a rendered document -- a watermark
+# can pick between them to encode bits the same way it picks between spaces.
+LINE_SEPARATOR_VARIANTS = {0x0085, 0x2028, 0x2029}
+
+OTHER_INVISIBLE = {
+    0x00AD,  # soft hyphen
+    0x180E,  # Mongolian vowel separator
+    0x034F,  # combining grapheme joiner -- invisible, category Mn like
+             # variation selectors, but not a legitimate diacritic itself
+}
 EMOJI_RANGES = [(0x1F300, 0x1FAFF), (0x2600, 0x27BF), (0x1F1E6, 0x1F1FF)]
 
 
@@ -25,6 +43,8 @@ def classify(cp: int) -> str | None:
         return "tag-block"
     if cp in SPACE_VARIANTS:
         return "space-variant"
+    if cp in LINE_SEPARATOR_VARIANTS:
+        return "line-separator-variant"
     if cp in OTHER_INVISIBLE:
         return "other-invisible"
     if unicodedata.category(chr(cp)) == "Cf":
