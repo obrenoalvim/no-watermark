@@ -24,8 +24,22 @@ OTHER_INVISIBLE = {
     0x180E,  # Mongolian vowel separator
     0x034F,  # combining grapheme joiner -- invisible, category Mn like
              # variation selectors, but not a legitimate diacritic itself
+    0x3164,  # Hangul filler (Hangul Compatibility Jamo block) -- unlike the
+             # Hangul Jamo fillers at U+115F/1160, this one has no script-glue
+             # role; it's a legacy IME placeholder with no legitimate use in
+             # prose, and is independently flagged as always-strip (no
+             # adjacency check) by a second reference tool
+             # (mikiane/claude-watermark-cleaner).
 }
 EMOJI_RANGES = [(0x1F300, 0x1FAFF), (0x2600, 0x27BF), (0x1F1E6, 0x1F1FF)]
+
+# Private Use Area (BMP + both supplementary PUA planes): no portable meaning
+# across systems -- renders as tofu/blank without a custom font mapping --
+# and a documented steganography vector (arbitrary payload as a PUA
+# codepoint sequence). Cross-checked against the leading open-source tool in
+# this space (guillaumemeyer/watermarks-remover, 13k+ stars) which strips
+# the same ranges for the same reason.
+PRIVATE_USE_RANGES = [(0xE000, 0xF8FF), (0xF0000, 0xFFFFD), (0x100000, 0x10FFFD)]
 
 
 def _in_ranges(cp, ranges):
@@ -49,6 +63,8 @@ def classify(cp: int) -> str | None:
         return "other-invisible"
     if unicodedata.category(chr(cp)) == "Cf":
         return "format-char"
+    if _in_ranges(cp, PRIVATE_USE_RANGES):
+        return "private-use"
     return None
 
 

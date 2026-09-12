@@ -31,10 +31,21 @@ def test_classify_combining_grapheme_joiner():
     assert classify(0x034F) == "other-invisible"
 
 
+def test_classify_hangul_compat_filler():
+    assert classify(0x3164) == "other-invisible"
+
+
 def test_classify_line_separator_variants():
     assert classify(0x2028) == "line-separator-variant"
     assert classify(0x2029) == "line-separator-variant"
     assert classify(0x0085) == "line-separator-variant"
+
+
+def test_classify_private_use_area():
+    assert classify(0xE000) == "private-use"  # BMP PUA
+    assert classify(0xF8FF) == "private-use"  # BMP PUA, last codepoint
+    assert classify(0xF0000) == "private-use"  # Supplementary PUA-A
+    assert classify(0x100000) == "private-use"  # Supplementary PUA-B
 
 
 def test_classify_normal_ascii_returns_none():

@@ -25,7 +25,7 @@ nowatermark clean suspicious.txt -o clean.txt --report
 echo "some text" | nowatermark clean -
 ```
 
-`clean` exits 0 always. `detect` exits 1 if it found anything (useful in scripts/CI).
+Exit codes: `0` clean/success, `1` `detect` found watermark characters, `2` usage/IO error (missing file, invalid UTF-8, path is a directory) — printed as a plain message to stderr, not a Python traceback.
 
 ## What it removes
 
@@ -36,9 +36,16 @@ echo "some text" | nowatermark clean -
 | Tag block | U+E0000–E007F | removed (unless part of a flag-emoji sequence) |
 | Anomalous spaces | all 16 non-ASCII Unicode "Zs" space characters (NBSP, Ogham space mark, thin/hair/em/en spaces, ideographic space, etc.) | normalized to a regular space |
 | Line separator variants | NEL (U+0085), LINE SEPARATOR (U+2028), PARAGRAPH SEPARATOR (U+2029) | normalized to `\n` |
-| Other | soft hyphen, Mongolian vowel separator, combining grapheme joiner | removed |
+| Private Use Area | U+E000–F8FF (BMP) plus both supplementary PUA planes | removed |
+| Other | soft hyphen, Mongolian vowel separator, combining grapheme joiner, Hangul compatibility filler (U+3164) | removed |
 
 Space coverage is derived from the full Unicode "Zs" category, not a hand-picked list — this matters because current LLM-watermarking research (e.g. [Innamark, IEEE Access 2025](https://arxiv.org/html/2502.12710)) watermarks text by substituting regular spaces with *any* visually-identical Zs character, so partial coverage is easy to bypass.
+
+Cross-checked against [guillaumemeyer/watermarks-remover](https://github.com/guillaumemeyer/watermarks-remover) (13k+ stars, the leading open-source tool in this space as of August 2026) to close two gaps: Private Use Area coverage was missing entirely, and the flag-emoji preservation check used a backward walk that could be tricked into also preserving payload characters appended right after a legitimate flag sequence's terminating cancel tag. Both are fixed as of this cycle.
+
+## Homoglyph detection (heuristic, detection-only)
+
+`nowatermark detect` also flags words that mix Latin letters with visually-identical Cyrillic or Greek ones (e.g. Cyrillic `а` swapped for Latin `a`) — a real technique for hiding a payload without any invisible character at all, confirmed as currently in use by [independent research into the August 2026 AI-watermark-remover tooling wave](https://www.bleepingcomputer.com/news/security/ai-watermark-removers-flood-the-web-almost-none-can-prove-they-work/). This is reported separately and never affects `detect`'s exit code — mixing scripts within a single word is rare in legitimate text but not impossible, so it's a signal to check, not a deterministic finding. `clean` does not touch these (auto-rewriting visible characters is a different, lossier guarantee than stripping invisible ones — see `TODO IMPROVEMENTS.md`).
 
 ## Emoji safety
 

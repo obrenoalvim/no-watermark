@@ -25,7 +25,7 @@ nowatermark clean suspeito.txt -o limpo.txt --report
 echo "algum texto" | nowatermark clean -
 ```
 
-`clean` sempre sai com código 0. `detect` sai com código 1 se encontrar algo (útil em scripts/CI).
+Códigos de saída: `0` limpo/sucesso, `1` `detect` achou caractere de watermark, `2` erro de uso/IO (arquivo faltando, UTF-8 inválido, caminho é diretório) — mensagem simples no stderr, sem traceback do Python.
 
 ## O que é removido
 
@@ -36,9 +36,16 @@ echo "algum texto" | nowatermark clean -
 | Bloco de tag | U+E0000–E007F | removido (exceto quando parte de uma sequência de bandeira-emoji) |
 | Espaços anômalos | os 16 caracteres de espaço "Zs" do Unicode que não são ASCII (NBSP, marca de espaço Ogham, espaços fino/cabelo/em/en, espaço ideográfico, etc.) | normalizado para espaço comum |
 | Variantes de separador de linha | NEL (U+0085), SEPARADOR DE LINHA (U+2028), SEPARADOR DE PARÁGRAFO (U+2029) | normalizado para `\n` |
-| Outros | hífen suave, separador de vogal mongol, juntor de grafema combinante | removido |
+| Área de Uso Privado | U+E000–F8FF (BMP) mais os dois planos suplementares de PUA | removido |
+| Outros | hífen suave, separador de vogal mongol, juntor de grafema combinante, filler de compatibilidade Hangul (U+3164) | removido |
 
 A cobertura de espaços vem da categoria Unicode "Zs" inteira, não de uma lista escolhida à mão — isso importa porque pesquisa atual de watermarking de LLM (ex: [Innamark, IEEE Access 2025](https://arxiv.org/html/2502.12710)) marca o texto substituindo espaços comuns por *qualquer* caractere Zs visualmente idêntico, então cobertura parcial é fácil de contornar.
+
+Cruzado com [guillaumemeyer/watermarks-remover](https://github.com/guillaumemeyer/watermarks-remover) (13k+ stars, ferramenta open-source líder dessa categoria em agosto de 2026) pra fechar 2 gaps: cobertura de Área de Uso Privado tava faltando por completo, e a checagem de preservação de bandeira-emoji usava um walk pra trás que dava pra enganar preservando também caractere de payload colado logo depois do cancel tag que termina uma sequência de bandeira legítima. Os dois corrigidos nesse ciclo.
+
+## Detecção de homoglyph (heurística, só detecção)
+
+`nowatermark detect` também sinaliza palavras que misturam letras latinas com Cirílico ou Grego visualmente idênticos (ex: `а` cirílico no lugar de `a` latino) — técnica real pra esconder payload sem nenhum caractere invisível, confirmada em uso atual por [pesquisa independente sobre a onda de ferramentas de remoção de watermark de IA de agosto de 2026](https://www.bleepingcomputer.com/news/security/ai-watermark-removers-flood-the-web-almost-none-can-prove-they-work/). Isso é reportado separado e nunca afeta o exit code do `detect` — misturar scripts dentro de uma palavra é raro em texto legítimo mas não impossível, então é sinal pra checar, não achado determinístico. `clean` não mexe nisso (reescrever caractere visível automaticamente é uma garantia diferente, mais arriscada, do que remover invisível — ver `TODO IMPROVEMENTS.md`).
 
 ## Segurança de emoji
 
