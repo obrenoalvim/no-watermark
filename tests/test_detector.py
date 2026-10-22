@@ -17,9 +17,7 @@ def test_classify_tag_block():
 def test_classify_space_variant():
     assert classify(0x00A0) == "space-variant"
     assert classify(0x3000) == "space-variant"
-    assert classify(0x1680) == "space-variant"  # Ogham space mark -- part of
-    # the full Unicode Zs set used by the Innamark whitespace-watermarking
-    # method (IEEE Access 2025); was missing from the old hand-picked list.
+    assert classify(0x1680) == "space-variant"
 
 
 def test_classify_soft_hyphen_and_mongolian_separator():
@@ -42,10 +40,10 @@ def test_classify_line_separator_variants():
 
 
 def test_classify_private_use_area():
-    assert classify(0xE000) == "private-use"  # BMP PUA
-    assert classify(0xF8FF) == "private-use"  # BMP PUA, last codepoint
-    assert classify(0xF0000) == "private-use"  # Supplementary PUA-A
-    assert classify(0x100000) == "private-use"  # Supplementary PUA-B
+    assert classify(0xE000) == "private-use"
+    assert classify(0xF8FF) == "private-use"
+    assert classify(0xF0000) == "private-use"
+    assert classify(0x100000) == "private-use"
 
 
 def test_classify_normal_ascii_returns_none():

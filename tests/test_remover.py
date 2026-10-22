@@ -84,9 +84,6 @@ def test_clean_preserves_flag_emoji_tag_sequence():
 
 
 def test_clean_strips_incomplete_flag_tag_sequence():
-    # Base flag emoji + tag chars but no terminating cancel tag -- not a
-    # complete sequence, so the tag chars are contraband and get stripped;
-    # the base emoji itself is never touched (it isn't in any blocklist).
     raw = "\U0001F3F4\U000E0067\U000E0062"
     cleaned, report = clean(raw)
     assert cleaned == "\U0001F3F4"
@@ -102,18 +99,11 @@ def test_clean_removes_private_use_area_chars():
 
 
 def test_clean_strips_payload_appended_after_valid_flag_sequence():
-    # A complete, well-formed England flag (base + tags + cancel) followed
-    # directly by MORE tag-range chars that are NOT part of any flag
-    # sequence (no base emoji of their own). A naive "walk backward to any
-    # flag emoji" check would wrongly preserve these too, since they're
-    # contiguous tag-block chars connected back to the same base -- this is
-    # exactly the gap closed this cycle by validating complete terminated
-    # sequences instead.
     england = "\U0001F3F4\U000E0067\U000E0062\U000E0065\U000E006E\U000E0067\U000E007F"
-    smuggled_payload = "\U000E0078\U000E0079"  # tag chars 'x','y' -- no base, no cancel
+    smuggled_payload = "\U000E0078\U000E0079"
     text = england + smuggled_payload
     cleaned, report = clean(text)
-    assert cleaned == england  # flag intact, smuggled tail gone
+    assert cleaned == england
     assert len(report) == 2
     assert all(r["category"] == "tag-block" for r in report)
 

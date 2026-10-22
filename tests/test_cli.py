@@ -47,11 +47,10 @@ def test_clean_report_flag_prints_summary(tmp_path, capsys):
 
 def test_detect_flags_homoglyph_word_but_does_not_change_exit_code(tmp_path, capsys):
     f = tmp_path / "homoglyph.txt"
-    # Cyrillic а (U+0430) instead of Latin a -- no invisible chars at all
     f.write_text("this аttack has no invisible chars", encoding="utf-8")
     code = main(["detect", str(f)])
     out = capsys.readouterr().out
-    assert code == 0  # heuristic finding must not affect the deterministic exit code
+    assert code == 0
     assert "homoglyph" in out
     assert "аttack" in out
 

@@ -16,10 +16,6 @@ def _read_input(path: str) -> str:
 
 
 def _print_homoglyph_report(text: str) -> None:
-    # Heuristic, not deterministic -- reported separately and never affects
-    # the exit code, so the "found X watermark characters" guarantee above
-    # stays uncontaminated by false positives (e.g. a legitimate Russian
-    # word mid-sentence).
     suspects = find_mixed_script_words(text)
     if not suspects:
         return
@@ -89,8 +85,6 @@ def main(argv: list[str] | None = None) -> int:
         print(f"nowatermark: {args.input} is a directory, not a file", file=sys.stderr)
         return 2
     except PermissionError:
-        # On Windows, open() raises PermissionError (not IsADirectoryError)
-        # for a directory path -- POSIX raises IsADirectoryError instead.
         if os.path.isdir(args.input):
             print(f"nowatermark: {args.input} is a directory, not a file", file=sys.stderr)
         else:
